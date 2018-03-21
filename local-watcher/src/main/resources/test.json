@@ -1,0 +1,29 @@
+{
+  "watchers": [
+    {
+      "type": "local",
+      "location": "C:/Users/Daan/Desktop/Commands",
+      "rules": [
+        {
+          "handler": "test",
+          "matchers": [
+            "/",
+            "/Test/"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "local",
+      "location": "C:/Users/Daan/Desktop",
+      "rules": [
+        {
+          "handler": "test",
+          "matchers": [
+            "/"
+          ]
+        }
+      ]
+    }
+  ]
+}
