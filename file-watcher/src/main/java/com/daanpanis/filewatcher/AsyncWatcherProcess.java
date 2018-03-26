@@ -23,6 +23,7 @@ public class AsyncWatcherProcess {
                     try {
                         Thread.sleep(intervalMillis);
                     } catch (InterruptedException e) {
+                        e.printStackTrace();
                         thread.interrupt();
                         break;
                     }

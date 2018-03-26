@@ -1,13 +1,14 @@
 package com.daanpanis.filewatcher.github.program;
 
-import com.daanpanis.filewatcher.FolderMatcher;
-import com.daanpanis.filewatcher.TrackedFile;
-import com.daanpanis.filewatcher.TrackerRule;
-import com.daanpanis.filewatcher.UpdateHandler;
+import com.daanpanis.filewatcher.*;
+import com.daanpanis.filewatcher.github.GithubCredentials;
+import com.daanpanis.filewatcher.github.GithubCredentialsParser;
 import com.daanpanis.filewatcher.github.GithubTracker;
-import com.daanpanis.filewatcher.utilities.FileUtils;
+import com.daanpanis.filewatcher.github.Password;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 
 public class Program {
 
@@ -37,12 +38,20 @@ public class Program {
                 e.printStackTrace();
             }
         });*/
-       /* TrackerRule rule = new TrackerRule(new CommandScriptHandler(), "daanpanis/test-github");
+        /*TrackerRule rule = new TrackerRule(new CommandScriptHandler(), "daanpanis/test-github");
         rule.addMatcher(new FolderMatcher("/"));
         rule.addMatcher(new FolderMatcher("/test/"));
         GithubTracker tracker = new GithubTracker();
+        tracker.addCredentials(new GithubCredentials(null, "dpdaan@hotmail.com", Password.github, new HashSet<>(Arrays.asList("daanpanis"))));
         tracker.addRule(rule);
         tracker.startAsync();*/
+        GithubTracker tracker = new GithubTracker();
+        tracker.startAsync();
+        FileWatchers watchers = new FileWatchers();
+        watchers.registerFileTracker(tracker);
+        watchers.registerUpdateHandler(new CommandScriptHandler());
+        watchers.registerCredentialsParser(new GithubCredentialsParser());
+        watchers.loadConfiguration(Program.class.getResourceAsStream("/test.json"));
     }
 
     public static class CommandScriptHandler implements UpdateHandler {

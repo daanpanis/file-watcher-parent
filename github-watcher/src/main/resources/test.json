@@ -1,0 +1,27 @@
+{
+  "credentials": [
+    {
+      "type": "github",
+      "username": "dpdaan@hotmail.com",
+      "password": "Needforspeed1!",
+      "users": [
+        "daanpanis"
+      ]
+    }
+  ],
+  "watchers": [
+    {
+      "type": "github",
+      "location": "daanpanis/test-github",
+      "rules": [
+        {
+          "handler": "test",
+          "matchers": [
+            "/test",
+            "/"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -5,11 +5,11 @@ import com.daanpanis.filewatcher.FileTracker;
 
 import java.io.IOException;
 
-public class GithubTracker extends FileTracker {
+public class GithubTracker extends FileTracker<GithubCredentials> {
 
     private final AsyncWatcherProcess process = new AsyncWatcherProcess("Github-Watcher-Thread", new GithubTrackerProcess(this), 5000);
 
-    public GithubTracker() throws IOException {
+    public GithubTracker() {
         super(new String[]{"github", "ghub"});
     }
 

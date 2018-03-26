@@ -1,6 +1,7 @@
 package com.daanpanis.filewatcher;
 
 import com.daanpanis.filewatcher.exceptions.ConfigurationLoadException;
+import com.daanpanis.filewatcher.exceptions.CredentialsParseException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -14,14 +15,54 @@ import java.util.Map;
 
 public class FileWatchers {
 
+    private final Map<Class<? extends FileTracker>, FileTracker<?>> fileTrackers = new HashMap<>();
     private final Map<String, FileTracker> registeredTrackers = new HashMap<>();
     private final Map<String, UpdateHandler> registeredHandler = new HashMap<>();
+    private final Map<Class<?>, CredentialsParser<?>> credentialsParsers = new HashMap<>();
+    private final Map<String, CredentialsParser<?>> credentialsParsersNames = new HashMap<>();
     private final JsonParser parser = new JsonParser();
 
-    public void registerFileTracker(FileTracker fileTracker) {
+    public void registerCredentialsParser(CredentialsParser<?> parser) {
+        credentialsParsers.put(parser.getCredentialsClass(), parser);
+        for (String name : parser.getNames()) { credentialsParsersNames.put(name.toLowerCase(), parser); }
+    }
+
+    public boolean isCredentialsParserRegistered(String parserName) {
+        return credentialsParsersNames.containsKey(parserName.toLowerCase());
+    }
+
+    public boolean isCredentialsParserRegistered(Class<?> credentialsClass) {
+        return credentialsParsers.containsKey(credentialsClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> CredentialsParser<T> getCredentialsParser(String parserName) {
+        return (CredentialsParser<T>) credentialsParsersNames.get(parserName.toLowerCase());
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> CredentialsParser<T> getCredentialsParser(Class<T> credentialsClass) {
+        return (CredentialsParser<T>) credentialsParsers.get(credentialsClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> void addCredentials(T credentials) {
+        if (isCredentialsParserRegistered(credentials.getClass())) {
+            FileTracker<T> fileTracker = getFileTracker((Class<FileTracker<T>>) getCredentialsParser(credentials.getClass()).getTrackerClass());
+            if (fileTracker != null) fileTracker.addCredentials(credentials);
+        }
+    }
+
+    public void registerFileTracker(FileTracker<?> fileTracker) {
+        fileTrackers.put(fileTracker.getClass(), fileTracker);
         for (String name : fileTracker.getNames()) {
             registeredTrackers.put(name.toLowerCase(), fileTracker);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> FileTracker<T> getFileTracker(Class<FileTracker<T>> fileTrackerClass) {
+        return (FileTracker<T>) fileTrackers.get(fileTrackerClass);
     }
 
     public boolean isTrackerRegistered(String name) {
@@ -59,6 +100,35 @@ public class FileWatchers {
         if (!element.isJsonObject()) throw new ConfigurationLoadException("Not json object");
         JsonObject json = element.getAsJsonObject();
         if (json.has("watchers")) loadWatchers(json.get("watchers"));
+        if (json.has("credentials")) loadCredentials(json.get("credentials"));
+    }
+
+    private void loadCredentials(JsonElement element) throws ConfigurationLoadException {
+        if (!element.isJsonArray()) throw new ConfigurationLoadException("Credentials not array");
+        for (JsonElement credentialsElement : element.getAsJsonArray()) { loadCredential(credentialsElement); }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadCredential(JsonElement element) throws ConfigurationLoadException {
+        if (!element.isJsonObject()) throw new ConfigurationLoadException("Credentials entry not json object");
+        JsonObject json = element.getAsJsonObject();
+        if (!json.has("type")) throw new ConfigurationLoadException("No credentials type defined");
+        String type = json.get("type").getAsString();
+
+        if (isCredentialsParserRegistered(type)) {
+            CredentialsParser credentialsParser = getCredentialsParser(type);
+
+            if (fileTrackers.containsKey(credentialsParser.getTrackerClass())) {
+                FileTracker tracker = getFileTracker(credentialsParser.getTrackerClass());
+                try {
+                    tracker.addCredentials(credentialsParser.parse(json));
+                } catch (CredentialsParseException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                throw new ConfigurationLoadException("Tracker type '" + credentialsParser.getTrackerClass() + "' isn't registered");
+            }
+        }
     }
 
     private void loadWatchers(JsonElement element) throws ConfigurationLoadException {
@@ -119,6 +189,5 @@ public class FileWatchers {
         }
         return matchers;
     }
-
 
 }

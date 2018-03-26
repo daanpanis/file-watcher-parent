@@ -3,9 +3,10 @@ package com.daanpanis.filewatcher;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class FileTracker {
+public abstract class FileTracker<T> {
 
     protected final Collection<TrackerRule> rules = new ArrayList<>();
+    protected final Collection<T> credentials = new ArrayList<>();
     private final String[] names;
 
     public FileTracker(String[] names) {
@@ -14,6 +15,14 @@ public abstract class FileTracker {
 
     public String[] getNames() {
         return names;
+    }
+
+    public void addCredentials(T credentials) {
+        this.credentials.add(credentials);
+    }
+
+    public Collection<T> getCredentials() {
+        return credentials;
     }
 
     public abstract void startAsync();
