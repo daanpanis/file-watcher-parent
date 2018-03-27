@@ -3,7 +3,7 @@ package com.daanpanis.filewatcher.local;
 import com.daanpanis.filewatcher.AsyncWatcherProcess;
 import com.daanpanis.filewatcher.FileTracker;
 
-public class LocalTracker extends FileTracker {
+public class LocalTracker extends FileTracker<Object> {
 
     private final AsyncWatcherProcess process = new AsyncWatcherProcess("Local-Watcher-Thread", new LocalTrackerProcess(this), 5000);
 

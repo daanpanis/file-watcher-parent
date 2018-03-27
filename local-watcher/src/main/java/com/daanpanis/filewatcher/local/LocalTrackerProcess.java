@@ -38,7 +38,8 @@ public class LocalTrackerProcess implements Runnable {
         Map<LocalFile, Diff> differences = new HashMap<>();
         trackedModifiedDates.entrySet().removeIf(entry -> {
             TrackedEntry tracked = entry.getValue();
-            if (!Paths.get(tracked.file.getFile().getAbsolutePath()).startsWith(folderPath)) return false;
+            if (!Paths.get(tracked.file.getFile().getAbsolutePath()).startsWith(folderPath))
+                return false;
             if (!tracked.file.getFile().exists()) {
                 differences.put(tracked.file, Diff.REMOVED);
                 return true;
